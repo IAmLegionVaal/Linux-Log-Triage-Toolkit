@@ -1,37 +1,52 @@
 # Linux Log Triage Toolkit
 
-A read-only Bash toolkit for collecting and summarising Linux journal, authentication, kernel, boot, and application error evidence.
+A Linux support toolkit for collecting log evidence and repairing selected journal-service, rotation and retention problems.
 
-## Features
-
-- Configurable time window and keyword filtering
-- Critical and error-level journal entries
-- Authentication failures and sudo activity
-- Kernel warnings, storage errors, OOM events, and service failures
-- Boot-specific error review
-- Top recurring messages and affected units
-- Text, CSV, and JSON summary outputs
-
-## Usage
+## Diagnostic script
 
 ```bash
 chmod +x src/linux_log_triage.sh
 sudo ./src/linux_log_triage.sh --hours 24
 ```
 
-Keyword example:
+The diagnostic script summarises journal, authentication, kernel, boot and recurring application errors in text, CSV and JSON formats.
+
+## Repair script
+
+Restart the journal service:
 
 ```bash
-sudo ./src/linux_log_triage.sh --hours 72 --keyword "disk|I/O|ext4"
+chmod +x src/linux_log_repair.sh
+sudo ./src/linux_log_repair.sh --restart-journald
 ```
 
-## Safety
+Rotate journal and configured log files:
 
-The script only reads logs and creates local report files. It does not rotate, clear, compress, or alter system logs.
+```bash
+sudo ./src/linux_log_repair.sh --rotate
+```
 
-## Privacy
+Apply a journal retention limit:
 
-Logs can contain usernames, IP addresses, hostnames, file paths, and application data. Review and sanitise reports before external sharing.
+```bash
+sudo ./src/linux_log_repair.sh --vacuum-days 30
+sudo ./src/linux_log_repair.sh --vacuum-size 500M
+```
+
+Preview any operation with `--dry-run`.
+
+## What the repair does
+
+- Restarts systemd-journald.
+- Requests journal rotation and runs logrotate when configured.
+- Can remove archived journal data older than a selected age.
+- Can reduce archived journal storage to a selected size.
+- Records journal disk usage and service state before and after repair.
+- Supports confirmation prompts, dry-run, logs and clear exit codes.
+
+## Safety and privacy
+
+Vacuum operations affect archived journal history and require confirmation. Current active journal files are managed through supported journalctl operations. Logs can contain sensitive infrastructure and user information and should be reviewed before sharing.
 
 ## Author
 
